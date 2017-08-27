@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <title>Sign in</title>
+    </head>
+    <body>
+            {% if error %}
+            <h1>Error: {{ error }}</h1>
+        {% endif %}
+        {% if message %}
+            <h1>{{ message }}</h1>
+        {% endif %}
+        <h1>Sign in form</h1>
+        <form action="/signin" method="POST">
+            <p>
+                <input type="text" name="login">
+            </p>
+            <p>
+                <input type="text" name="password">
+            </p>
+            <p>
+                <input type="submit" name="subm" value="Sign in">
+            </p>
+        </form>
+    </body>
+</html>
