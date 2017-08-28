@@ -1,0 +1,16 @@
+<html>
+    <head>
+        <title>{{ username }} posts</title>
+    </head>
+    <body>
+        <h1>{{ username }} posts</h1>
+        <form action="/new_post" method="GET">
+            <p><input type="submit" value="New post"></p>
+        </form>
+        {% for post in posts %}
+            <p>{{ post.text }}</p>
+            <p><a href="/user/{{ username }}?post_id={{ post.id }}">View post</a></p>
+            <hr>
+        {% endfor %}
+    </body>
+</html>

@@ -3,7 +3,7 @@
         <title>Sign in</title>
     </head>
     <body>
-            {% if error %}
+        {% if error %}
             <h1>Error: {{ error }}</h1>
         {% endif %}
         {% if message %}
@@ -15,11 +15,14 @@
                 <input type="text" name="login">
             </p>
             <p>
-                <input type="text" name="password">
+                <input type="password" name="password">
             </p>
             <p>
                 <input type="submit" name="subm" value="Sign in">
             </p>
+        </form>
+        <form action="/signup" method="GET">
+            <p>Or you can <input type="submit" value="Sign up"></p>
         </form>
     </body>
 </html>

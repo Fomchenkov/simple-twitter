@@ -39,6 +39,16 @@ class DataBase:
 			return True
 		return False
 
+	def login_exists(self, login):
+		c = self.conn.cursor()
+		sql = f"SELECT * FROM users WHERE login='{login}'"
+		res = c.execute(sql).fetchone()
+		self.conn.commit()
+		print(res)
+		if res:
+			return True
+		return False
+
 	def sign_up(self, login, password):
 		c = self.conn.cursor()
 		sql = f"INSERT INTO users (login, password) VALUES ('{login}', '{password}')"
@@ -46,7 +56,49 @@ class DataBase:
 		res = c.execute(sql)
 		sql = "SELECT * FROM users"
 		print("База данных:", c.execute(sql).fetchall())
+		# Create table for this user posts
+		sql = f"""CREATE TABLE IF NOT EXISTS user_{login} (
+			id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+			text TEXT NOT NULL)"""
+		print(sql)
+		c.execute(sql)
 		self.conn.commit()
+
+	def add_new_post(self, login, text):
+		c = self.conn.cursor()
+		sql = f"INSERT INTO user_{login} (text) VALUES ('{text}')"
+		print(sql)
+		c.execute(sql)
+		self.conn.commit()
+
+	def get_post(self, login, post_id):
+		c = self.conn.cursor()
+		sql = f"SELECT * FROM user_{login} WHERE id='{post_id}'"
+		print(sql)
+		res = c.execute(sql).fetchone()
+		print(res)
+		self.conn.commit()
+		if not res:
+			return None
+		return {
+			'id': res[0],
+			'text': res[1]
+		}
+
+	def get_all_posts(self, login):
+		c = self.conn.cursor()
+		sql = f"SELECT * FROM user_{login} ORDER BY id DESC"
+		print(sql)
+		res = c.execute(sql)
+		print(res)
+		posts = []
+		for post in res:
+			posts.append({
+				'id': post[0],
+				'text': post[1]
+			})
+		print(posts)
+		return posts
 
 	def close(self):
 		self.conn.close()
@@ -114,6 +166,9 @@ def post_signup_page():
 		err_msg = 'Short login or password!'
 		return render_template('signup.html', error=err_msg)
 	db = DataBase(conn)
+	if db.login_exists(login):
+		err_msg = 'This login is exists!'
+		return render_template('signup.html', error=err_msg)
 	db.sign_up(login, password)
 	return redirect('/signin')
 
@@ -124,10 +179,38 @@ def show_user_profile(username):
 	Show user profile
 	"""
 	if not 'username' in session or not username == session['username']:
-		print('pinned')
 		return redirect('/')
-	# Load user page
-	return 'Hello, {!s}!'.format(username)
+	post_id = request.args.get('post_id')
+	db = DataBase(conn)
+	if post_id:
+		print('Page redirect', post_id)
+		post = db.get_post(username, post_id)
+		if not post:
+			return render_template('404.html'), 404
+		return render_template('view_post.html', post=post)
+	posts = db.get_all_posts(username)
+	if len(posts) == 0:
+		msg = 'No posts anywhere!'
+		return render_template('no_posts.html', username=username, message=msg)
+	return render_template('posts.html', username=username, posts=posts)
+
+
+@app.route('/new_post', methods=['GET'])
+def get_new_post():
+	if not 'username' in session:
+		return redirect('/')
+	return render_template('new_post.html')
+
+
+@app.route('/new_post', methods=['POST'])
+def post_new_post():
+	if not 'username' in session:
+		return redirect('/')
+	text = request.form['text']
+	print(text)
+	db = DataBase(conn)
+	db.add_new_post(session['username'], text)
+	return redirect('/')
 
 
 @app.errorhandler(404)

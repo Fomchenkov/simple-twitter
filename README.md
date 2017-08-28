@@ -1,1 +1,1 @@
-# Simple Twitter analog
+# Simple Twitter implementation
