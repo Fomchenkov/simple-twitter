@@ -3,6 +3,9 @@
         <title>{{ username }} posts</title>
     </head>
     <body>
+        <form action="/logout" method="GET">
+            <p><input type="submit" value="Log out"></p>
+        </form>
         <h1>You don't have any posts.</h1>
         <form action="/new_post" method="GET">
             <h3>Create new post now!</h3>

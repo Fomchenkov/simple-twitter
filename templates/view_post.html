@@ -5,7 +5,7 @@
     <body>
         <p><h1>Post #{{ post.id }}</h1></p>
         <p>{{ post.text }}</p>
-        <form action="/" method="GET">
+        <form action="/user/{{ username }}" method="GET">
             <p><input type="submit" value="Back"></p>
         </form>
     </body>

@@ -178,21 +178,35 @@ def show_user_profile(username):
 	"""
 	Show user profile
 	"""
-	if not 'username' in session or not username == session['username']:
+	if 'username' not in session:
+		# Unregistered user
 		return redirect('/')
+
+	if 'username' in session and not username == session['username']:
+		# Registred but not owner user
+		post_id = request.args.get('post_id')
+		db = DataBase(conn)
+		if post_id:
+			post = db.get_post(username, post_id)
+			if not post:
+				return render_template('404.html'), 404
+			return render_template('view_post.html', post=post, username=username)
+		posts = db.get_all_posts(username)
+		return render_template('not_own_posts.html', username=username, posts=posts)
+
+	# Page owner
 	post_id = request.args.get('post_id')
 	db = DataBase(conn)
 	if post_id:
-		print('Page redirect', post_id)
 		post = db.get_post(username, post_id)
 		if not post:
 			return render_template('404.html'), 404
-		return render_template('view_post.html', post=post)
+		return render_template('view_post.html', post=post, username=username)
 	posts = db.get_all_posts(username)
 	if len(posts) == 0:
 		msg = 'No posts anywhere!'
 		return render_template('no_posts.html', username=username, message=msg)
-	return render_template('posts.html', username=username, posts=posts)
+	return render_template('own_posts.html', username=username, posts=posts)
 
 
 @app.route('/new_post', methods=['GET'])
@@ -200,6 +214,12 @@ def get_new_post():
 	if not 'username' in session:
 		return redirect('/')
 	return render_template('new_post.html')
+
+
+@app.route('/logout', methods=['GET'])
+def get_logout():
+	session.clear()
+	return redirect('/')
 
 
 @app.route('/new_post', methods=['POST'])
@@ -213,9 +233,19 @@ def post_new_post():
 	return redirect('/')
 
 
+@app.route('/about', methods=['GET'])
+def get_about():
+	return render_template('about_as.html'), 200
+
+
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def page_not_found(error):
+    return render_template('500.html'), 500
 
 
 def main():
